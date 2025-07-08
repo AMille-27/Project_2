@@ -4,6 +4,7 @@
 library(jsonlite)
 library(tidyverse)
 library(purrr)
+library(dplyr)
 library(httr)
 library(ggalluvial) 
 #API Vegan Meals Query 
@@ -226,3 +227,45 @@ ggplot(data=full_all_meals, aes(x= number_ingredients, y= instruction_length,
   geom_jitter()+
   labs(title = "Number of Ingredients Vs Instruction Length", 
        x= "number of Ingredients", y= "Number of Characters in Instruction")
+
+#cleaning up to have my get fn combined to make app look better
+get_meals_all <- function (category = NULL,
+                           min_ingredients = NULL,
+                           max_ingredients = NULL,
+                           area = NULL,
+                           has_video = NULL) {
+  
+  base_df <- get_meals_by_category(category)
+  ids <- base_df$idMeal
+  
+  full_meals <- purrr::map_dfr(ids, get_meals_by_id)
+  
+  #number of ingredients prework
+  counts_ingredient <-full_meals |>
+    select(idMeal, starts_with("strIngredient")) |>
+    pivot_longer(cols= starts_with("strIngredient"), 
+                 names_to = "ingredient_name",
+                 values_to = "ingredient") |>
+    filter(!is.na(ingredient) & ingredient != "") |>
+    count(idMeal, name= "number_ingredients")
+  
+  full_meals <- full_meals |> #putting it back together
+    left_join(counts_ingredient, by = "idMeal")
+  
+  if (!is.null(min_ingredients)) {
+    full_meals <- dplyr::filter(full_meals, number_ingredients >= min_ingredients)
+  }
+  if (!is.null(max_ingredients)){
+    full_meals <-dplyr::filter(full_meals, number_ingredients <= max_ingredients)
+  }
+  
+  if (!is.null(area)) {#by Area
+    full_meals <- dplyr::filter(full_meals, strArea == area)
+  }
+  
+  if (!is.null(has_video) && has_video ==TRUE) { #youtube or not
+    full_meals <- Youtube(full_meals, has_video)
+  }
+  
+  return(full_meals)
+   }

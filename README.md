@@ -9,6 +9,8 @@ JSONlite
 Purrr
 Shiny
 ggalluvial 
+shinydashboard
+DT
 ## A line of code that would install all the packages used (so we can easily grab that and run it prior to running your app).
-install.packages(c("tidyverse", "jsonlite","purrr", "shiny","ggalluvial")) 
+install.packages(c("tidyverse", "jsonlite","purrr", "shiny","ggalluvial","shinydashboard", "DT")) 
 ## The shiny::runGitHub() code that we can copy and paste into RStudio to run your app.
