@@ -5,6 +5,7 @@ library(jsonlite)
 library(tidyverse)
 library(purrr)
 library(httr)
+library(ggalluvial) 
 #API Vegan Meals Query 
 
 Vegan_meals_query <- "https://www.themealdb.com/api/json/v1/1/filter.php?c=Vegan"
@@ -110,7 +111,7 @@ full_all_meals <-full_all_meals |>
 
 # Know How to Summarize the Data
 
-## Video Availability by Area  
+## Video Availability by Area  stacked bar graph
 full_all_meals |>
   count(strArea, has_youtube) |>
   ggplot(aes(fill= has_youtube, y= n, x = strArea))+
@@ -119,7 +120,7 @@ full_all_meals |>
   geom_text(aes(label =n))+
   labs(title = "Video Availability by Area", y = "Number of meals", x = "Region")
   
-## Plant Based or other by region contingency table
+## Plant Based or other by stacked bar graph
  full_all_meals |>
    count(diet_type, strArea) |>
    ggplot(aes(fill = diet_type, y = n, x = strArea)) +
@@ -130,6 +131,98 @@ full_all_meals |>
 
  ## Contingency table "Number of ingredients" and Youtube videos 
  # need to categorize complexity based on number of ingredients. 
+ summary(full_all_meals$number_ingredients, na.rm = TRUE)
+ # if meal has less than 8 ingredients few, be 8 and 13 moderate and > 13 Many
+#adding a column with the categories 
+ full_all_meals <- full_all_meals|>
+   mutate(ingredient_complexity = case_when(
+     number_ingredients < 8 ~ "Few",
+     number_ingredients >=8 & number_ingredients <= 13 ~"Moderate",
+     number_ingredients > 13 ~ "Many"
+   ))
+#adding the contingency table 
+ full_all_meals |> 
+   group_by (ingredient_complexity, has_youtube) |>
+   summarize(n=n()) |>
+   pivot_wider(
+     names_from = has_youtube,
+     values_from = n
+   )
+   
+#Box Plot of Ingredients and Area
+ full_all_meals |>
+   ggplot(aes(x= strArea , y= number_ingredients)) +
+   geom_boxplot(fill = "white", colour = "#3366FF")+
+   coord_flip()+
+   labs(title = "Regional Comparion of Number of Ingredients", 
+        y = "Number of ingredients", x = "Region")
  
- 
+#table of the above information
+  summarystats_region_vs_numIngredients<- full_all_meals |>
+   group_by(strArea) |>
+   summarize(
+     min_ingredients = min(number_ingredients),
+     Q1_ingredients = quantile(number_ingredients,.25),
+     median_ingredients = median(number_ingredients),
+     Q3_ingredients = quantile(number_ingredients,.75),
+     mean_ingredients = mean(number_ingredients),
+     max_ingredients = max(number_ingredients),
+     sd_ingredients = sd(number_ingredients))
+    
 
+#creative plot alluvial plot 
+library(ggalluvial)  
+touse_ggalluvial <- full_all_meals |>
+  count(strCategory, strArea, ingredient_complexity, has_youtube)
+#to make it so my table isn't so jumble up, got get the numbers per area,
+#get a list of the small, add them together to make an others, and then add them
+#to tibble to be able to use the galluvial but not jumbled 
+area_counts <- touse_ggalluvial |> 
+  count(strArea, wt = n)
+category_counts <- touse_ggalluvial |>
+  count(strCategory, wt = n)
+small_areas <- area_counts |> 
+  filter(n < 10) |> 
+  pull(strArea)
+small_categories <- category_counts |> 
+  filter(n < 5) |> 
+  pull(strCategory)
+touse_ggalluvial <- touse_ggalluvial |>
+  mutate(
+    strArea = if_else(strArea %in% small_areas, "Rare Regions", strArea),
+    strCategory = if_else(strCategory %in% small_categories| strCategory =="Miscellaneous", 
+                          "Miscellaneous", strCategory)
+  )
+touse_ggalluvial <- touse_ggalluvial |>
+  mutate(
+    strArea = factor(strArea),
+    strCategory = factor(strCategory)
+  )
+
+
+ggplot( data = touse_ggalluvial,
+         aes(axis1 = strCategory, axis2 = strArea, axis3= ingredient_complexity,
+             y = n)) +
+  scale_x_discrete(limits = c("Category","Area","ingredient_complexity"), 
+                   expand = c(.2,.05)) + 
+  xlab("Meal Information")+
+  ylab("Number of Meals")+
+  geom_alluvium(aes(fill = has_youtube)) +
+  geom_stratum() + 
+  geom_text(stat = "stratum", aes(label = after_stat(stratum))) +
+    theme_minimal() +
+    ggtitle("Meals on MealDB by Category, Area and Complexity",
+            "stratified by YouTube video availability")
+#histogram
+ggplot(data = full_all_meals , aes(x = instruction_length, fill = ingredient_complexity))+
+  geom_histogram() +
+  labs(title = "Instruction Length Distribution", x= "number of characters", 
+       )
+
+#scatterplot
+ggplot(data=full_all_meals, aes(x= number_ingredients, y= instruction_length,
+                    color = strCategory))+
+  geom_point()+
+  geom_jitter()+
+  labs(title = "Number of Ingredients Vs Instruction Length", 
+       x= "number of Ingredients", y= "Number of Characters in Instruction")
