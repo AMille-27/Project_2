@@ -93,83 +93,57 @@ ui <- dashboardPage(skin = "green",
                 ) #ends column command
               ) #ends fluidrow column
       ), #ends download tab content
-  # Data Exploration tab content
+ 
+       # Data Exploration tab content
   tabItem(tabName = "data_exploration_tab", 
         fluidRow (
           box(
             title = "Description",
             width = 12,
-            p("This will be the Data Exploration tab.")
+            p("This will be the Data Exploration tab."),
+            p("Please use the tabs below to explore different types of data displays based on Meal Data"),
+            p("Summary Data: View a plot and table for one variable of your choosing."),
+            p("Quantitative Data: Compare numeric values such as Number of ingredients, and instruction length."),
+            p("Categorical Data: Look at different categories in the meal dataset."),
+            p("Creative Display: A different way to visualize data combining multiple variables")
             ) # ends description box
           ), #ends description fluidRow
         fluidRow(
-          box(
+          tabBox(
             title = "Exploration",
+            id = "exploration_tabs",
             width = 12,
+            
+            tabPanel("Summary",
             selectInput("column_choice","Choose a column to Explore:",
                         choices = c("strArea", "number_ingredients",
-                                    "ingredient_complexity", "instruction_length", "has_video"),
-                        selected = "strCategory"),
-            selectInput("Plot_type","Choose a Plot type:",
+                                    "ingredient_complexity", "instruction_length", "has_video", "strCategory", "All"),
+                        selected = ""),
+            selectInput("plot_type","Choose a Plot type:",
                         choices = c("Bar Plot", "Histogram","BoxPlot"),
                         selected = "Bar Plot"),
             plotOutput("column_plot"),
             tableOutput("column_summary"),
-          )
         ),
-        fluidRow(
-          box(
-            title = "First Plot",
-            width = 12, plotOutput("histogram")
-            )#ends box of first plot histogram
-        ), #ends fluid Row of first plot histogram
-        
-        fluidRow(
-          box(
-            title = "Second Plot",
-            width = 12, plotOutput("boxplot1")
-          )#ends box of second plot boxplot1
-        ), #ends fluid Row of second plot boxplot1
-        
-        fluidRow(
-          box(
-            title = "Third Plot",
-            width = 12, 
-            selectInput(
-              inputId = "selected_Category",
-              label = "Select a Meal Category:",
-              choices = c("All", "Beef", "Chicken", "Dessert", "Lamb", "Miscellaneous",
-                          "Pasta", "Pork", "Seafood", "Side", "Starter",
-                          "Vegan", "Vegetarian", "Breakfast", "Goat"),,
-              selected = "All"
-            ),
-            plotOutput("scatterplot1")
-            )#ends box of third plot 
-        ), #ends fluid Row of third plot 
-        fluidRow(
-          box(
-            title = "Fourth Plot",
-            width = 12, plotOutput("stackedbar1")
-          )#ends box of fourth plot 
-        ), #ends fluid Row of fourth plot 
-        fluidRow(
-          box(
-            title = "Fifth Plot",
-            width = 12, plotOutput("stackedbar2")
-          )#ends box of fifth plot 
-        ), #ends fluid Row of fifth plot 
-        
-        fluidRow(
-          box(
-            title = "Sixth",
-            width = 12, plotOutput("ggalluvial")
-          )#ends box of sixth plot 
-        ) #ends fluid Row of sixth plot 
-       ) #ends tabItem "data_exploraration"
-    ) #ends tabItem all tabs
-  ) #ends dashboard body
-) #ends dashboardpage
-
+        tabPanel("Quantitative",
+                 selectInput("selected_Category", "Filter by Category:",
+                             choices = c("All", "Beef", "Chicken", "Dessert", "Vegan")),
+                 plotOutput("scatterplot1"),
+                 plotOutput("boxplot1"),
+                 plotOutput("histogram")
+        ),
+        tabPanel("Categorical",
+                 plotOutput("stackedbar1"),
+                 plotOutput("stackedbar2")
+        ),
+        tabPanel("Creative",
+                 plotOutput("ggalluvial"))
+        )#ends box of sixth plot 
+      ) #ends fluid Row of sixth plot 
+    ) #ends tabItem "data_exploraration"
+    )
+  )
+)
 server <- function(input, output, session) { 
 
 meal_data <-reactive({
