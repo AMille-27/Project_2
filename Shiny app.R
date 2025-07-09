@@ -8,7 +8,7 @@ library("ggalluvial")
 library("purrr")
 
 
-## app.R ##
+ app.R
 ui <- dashboardPage(skin = "green",
   dashboardHeader(title = "Meals to Try"),
   dashboardSidebar(
