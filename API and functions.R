@@ -220,7 +220,7 @@ ggplot(data = full_all_meals , aes(x = instruction_length, fill = ingredient_com
   labs(title = "Instruction Length Distribution", x= "number of characters", 
        )
 
-#scatterplot
+#scatterplot 
 ggplot(data=full_all_meals, aes(x= number_ingredients, y= instruction_length,
                     color = strCategory))+
   geom_point()+
@@ -232,6 +232,7 @@ ggplot(data=full_all_meals, aes(x= number_ingredients, y= instruction_length,
 get_meals_all <- function (category = NULL,
                            min_ingredients = NULL,
                            max_ingredients = NULL,
+                           ingredient_complexity= NULL,
                            area = NULL,
                            has_video = NULL) {
   
@@ -249,14 +250,29 @@ get_meals_all <- function (category = NULL,
     filter(!is.na(ingredient) & ingredient != "") |>
     count(idMeal, name= "number_ingredients")
   
-  full_meals <- full_meals |> #putting it back together
+  full_meals <- full_meals |> #putting ingredients back together
     left_join(counts_ingredient, by = "idMeal")
   
-  if (!is.null(min_ingredients)) {
+  full_meals <-full_meals |> #to sort ingredient complexity
+    mutate(ingredient_complexity = case_when(
+      number_ingredients < 8 ~ "Few",
+      number_ingredients >=8 & number_ingredients <= 13 ~"Moderate",
+      number_ingredients > 13 ~ "Many"
+    ))
+  
+  full_meals <- full_meals |> #to get instruction count
+    mutate(instruction_length = nchar(strInstructions))
+  
+  #filters
+  if (!is.null(min_ingredients)) { #min ingredients
     full_meals <- dplyr::filter(full_meals, number_ingredients >= min_ingredients)
   }
-  if (!is.null(max_ingredients)){
+  if (!is.null(max_ingredients)){ #max ingredients
     full_meals <-dplyr::filter(full_meals, number_ingredients <= max_ingredients)
+  }
+  
+  if (!is.null(ingredient_complexity) && ingredient_complexity != "") {
+    full_meals <- dplyr::filter(full_meals, ingredient_complexity == !!ingredient_complexity)
   }
   
   if (!is.null(area)) {#by Area
