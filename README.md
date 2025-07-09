@@ -23,4 +23,4 @@ install.packages(c("tidyverse", "jsonlite","purrr",
 "shiny","ggalluvial","shinydashboard", "DT")) 
 
 ## The shiny::runGitHub() code that we can copy and paste into RStudio to run your app.
-shiny::runGitHub("Project_2", "A-Mille-27")
+shiny::runGitHub("Project_2", "AMille-27")
