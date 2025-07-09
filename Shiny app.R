@@ -10,7 +10,7 @@ library("purrr")
 
 ## app.R ##
 ui <- dashboardPage(skin = "green",
-  dashboardHeader(title = "Meals to Try, from MealsDB API"),
+  dashboardHeader(title = "Meals to Try"),
   dashboardSidebar(
     sidebarMenu( id= "tabs",
       menuItem("About", tabName = "about_tab"),
