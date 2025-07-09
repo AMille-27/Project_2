@@ -9,6 +9,7 @@ library("purrr")
 
 library(shiny)
 library(shinydashboard)
+source("API and functions.R")
  ##app.R##
 ui <- dashboardPage(skin = "green",
   dashboardHeader(title = "Meals to Try"),
