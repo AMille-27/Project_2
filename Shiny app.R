@@ -4,14 +4,13 @@ library("DT")
 library("httr")
 library("jsonlite")
 library("tidyverse")
-library(ggalluvial)
+library("ggalluvial")
+library("purrr")
+
 
 ## app.R ##
-library(shiny)
-library(shinydashboard)
-
 ui <- dashboardPage(skin = "green",
-  dashboardHeader(title = "Meals to Try"),
+  dashboardHeader(title = "Meals to Try, from MealsDB API"),
   dashboardSidebar(
     sidebarMenu( id= "tabs",
       menuItem("About", tabName = "about_tab"),
@@ -43,7 +42,12 @@ ui <- dashboardPage(skin = "green",
                   width = 12,
                   p("The data comes from"),
                   tags$a(href = "https://www.themealdb.com/api.php", "TheMealDB API")
-                ) #ends about the data box
+                ), #ends about the data box
+                tags$img(
+                  src = "TheMealDB logo.png", 
+                  height = "200px",
+                  style = "display: block; margin: 20px auto;"
+                ), #ends picture recipe_book
               ) #ends the about the data fluid Row
       ), #ends the about tab content
       
